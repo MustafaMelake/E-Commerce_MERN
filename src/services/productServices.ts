@@ -1,4 +1,6 @@
 import { productModel } from "../models/productModel.js";
+import type { ExtendReq } from "../types/express.js";
+import { getCartForUser } from "./cartServices.js";
 
 export const generateAllProducts = async () => {
   return await productModel.find();
@@ -28,4 +30,43 @@ export const seedInitialProducts = async () => {
   if (existingProduct.length === 0) {
     await productModel.insertMany(products);
   }
+};
+
+interface IaddToCart {
+  productID: any;
+  quantity: number;
+  userID: string;
+}
+
+export const addToCart = async ({
+  productID,
+  quantity,
+  userID,
+}: IaddToCart) => {
+  const cart = await getCartForUser({ userID });
+  const existInCart = cart.items.find(
+    (p) => p.product.toString() === productID
+  );
+  if (existInCart) {
+    return { data: "I am already exists in cart!", statusCode: 400 };
+  }
+  const product = await productModel.findById(productID);
+  if (!product) {
+    return { data: "Item Not Found!", statusCode: 400 };
+  }
+
+  if (product.stock < quantity) {
+    return { data: "No Stock", statusCode: 400 };
+  }
+
+  cart.items.push({
+    product: productID,
+    unitPrice: product.price,
+    quantity,
+  });
+
+  cart.totalNumber += product.price * quantity;
+
+  const updatedCart = await cart.save();
+  return { data: updatedCart, statusCode: 200 };
 };
