@@ -1,3 +1,4 @@
+import type { ICart, ICartItem } from "../models/cartModel.js";
 import { productModel } from "../models/productModel.js";
 import type { ExtendReq } from "../types/express.js";
 import { getCartForUser } from "./cartServices.js";
@@ -71,6 +72,17 @@ export const addToCart = async ({
   return { data: updatedCart, statusCode: 200 };
 };
 
+interface ClearCart {
+  userID: string;
+}
+export const clearCart = async ({ userID }: ClearCart) => {
+  const cart = await getCartForUser({ userID });
+  cart.items = [];
+  cart.totalNumber = 0;
+  const updatedCart = await cart.save();
+  return { data: updatedCart, statusCode: 200 };
+};
+
 interface IUpdatedToCart {
   productID: any;
   quantity: number;
@@ -115,6 +127,47 @@ export const UpdatedToCart = async ({
   total += existInCart.quantity * existInCart.unitPrice;
 
   cart.totalNumber += total;
+
+  const updatedCart = await cart.save();
+  return { data: updatedCart, statusCode: 200 };
+};
+
+interface IDeleteFromCart {
+  productID: any;
+  userID: string;
+}
+
+export const DeleteFromCart = async ({
+  productID,
+  userID,
+}: IDeleteFromCart) => {
+  const cart = await getCartForUser({ userID });
+
+  const existInCart = cart.items.find(
+    (p) => p.product.toString() === productID
+  );
+
+  if (!existInCart) {
+    return { data: "Item not exists in cart!", statusCode: 400 };
+  }
+
+  // Filter out the item to be deleted
+  const otherCartItems = cart.items.filter(
+    (p) => p.product.toString() !== productID
+  );
+
+  // Calculate the new total by summing remaining items
+  const newTotal = otherCartItems.reduce(
+    (sum: number, product: { quantity: number; unitPrice: number }) => {
+      sum += product.quantity * product.unitPrice;
+      return sum;
+    },
+    0
+  );
+
+  // Update cart with new items and new total
+  cart.items = otherCartItems;
+  cart.totalNumber = newTotal; // Use = instead of +=
 
   const updatedCart = await cart.save();
   return { data: updatedCart, statusCode: 200 };
