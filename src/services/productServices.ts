@@ -1,4 +1,5 @@
 import type { ICart, ICartItem } from "../models/cartModel.js";
+import { orderModel, type IOrderItem } from "../models/orderModel.js";
 import { productModel } from "../models/productModel.js";
 import type { ExtendReq } from "../types/express.js";
 import { getCartForUser } from "./cartServices.js";
@@ -171,4 +172,49 @@ export const DeleteFromCart = async ({
 
   const updatedCart = await cart.save();
   return { data: updatedCart, statusCode: 200 };
+};
+
+interface ICheckout {
+  userID: string;
+  address: string;
+}
+
+export const checkout = async ({ userID, address }: ICheckout) => {
+  if (!address) {
+    return { data: "Please add the address", statusCode: 400 };
+  }
+
+  const cart = await getCartForUser({ userID });
+
+  const orderItems: IOrderItem[] = [];
+  for (const item of cart.items) {
+    const product = await productModel.findById(item.product);
+
+    if (!product) {
+      return { data: "Product not found", statusCode: 400 };
+    }
+
+    const orderItem: IOrderItem = {
+      productTitle: product.title,
+      productImage: product.image,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    };
+
+    orderItems.push(orderItem);
+  }
+
+  const order = await orderModel.create({
+    orderItems,
+    total: cart.totalNumber,
+    address,
+    userID,
+  });
+
+  await order.save();
+
+  // Update the cart status to be completed
+  cart.status = "complete";
+  await cart.save();
+  return { data: order, statusCode: 200 };
 };
