@@ -18,15 +18,20 @@ export const seedInitialProducts = async () => {
         price: 60000,
         stock: 10,
       },
-      // { title: "Product 2", image: "image2. jpg", price: 20, stock: 80 },
-      // { title: "Product 3", image: "image3.jpg", price: 15, stock: 50 },
-      // { title: "Product 4", image: "image4. jpg", price: 25, stock: 70 },
-      // { title: "Product 5", image: "image5. jpg", price: 5, stock: 90 },
-      // { title: "Product 6", image: "image6. jpg", price: 30, stock: 60 },
-      // { title: "Product 7", image: "image7. jpg", price: 35, stock: 40 },
-      // { title: "Product 8", image: "image8.jpg", price: 40, stock: 30 },
-      // { title: "Product 9", image: "image9.jpg", price: 40, stock: 30 },
-      // { title: "Product 10", image: "image10.jpg", price: 40, stock: 30 },
+      {
+        title: "Iphone 17 Pro",
+        image:
+          "https://assets-dubaiphone.dubaiphone.net/dp-prod/wp-content/uploads/2025/09/Apple-IPhone-17-Pro-With-FaceTime-512GB-12GB-RAM-_6086_1.webp",
+        price: 47000,
+        stock: 12,
+      },
+      {
+        title: "Airpods",
+        image:
+          "https://ennap.com/cdn/shop/files/airpods-4-select-202409_FV1.jpg?v=1727106364",
+        price: 12000,
+        stock: 5,
+      },
     ];
 
     const existingProduct = await generateAllProducts();
