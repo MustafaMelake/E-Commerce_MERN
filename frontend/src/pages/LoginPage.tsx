@@ -1,13 +1,15 @@
-import { Box, Button, Container, TextField, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Container from "@mui/material/Container";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
 import { useRef, useState } from "react";
 import { BASE_URL } from "../constants/BaseUrl";
 import { useAuth } from "../context/auth/authContext";
 import { useNavigate } from "react-router-dom";
 
-const RegisterPage = () => {
+const LoginPage = () => {
   const [error, setError] = useState("");
-  const firstNameRef = useRef<HTMLInputElement>(null);
-  const lastNameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -16,41 +18,41 @@ const RegisterPage = () => {
   const { login } = useAuth();
 
   const onSubmit = async () => {
-    const firstName = firstNameRef.current?.value;
-    const lastName = lastNameRef.current?.value;
     const email = emailRef.current?.value;
     const password = passwordRef.current?.value;
 
     // Validate the form data
-    if (!firstName || !lastName || !email || !password) {
+    if (!email || !password) {
       setError("Check submitted data.");
       return;
     }
 
     // Make the call to API to create the user
-    try {
-      const response = await fetch(`${BASE_URL}/user/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password }),
-      });
+    const response = await fetch(`${BASE_URL}/user/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
 
-      const token = await response.json();
-
-      if (!response.ok) {
-        // Use the error message from the backend if it exists
-        setError("Registration failed");
-        return;
-      }
-
-      // Success: data should contain your token/user
-      login(email, token);
-      navigate("/");
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      setError("Server is unreachable. Check if your backend is running.");
+    if (!response.ok) {
+      setError("Unable to login user, please try different credientials!");
+      return;
     }
+
+    const token = await response.json();
+
+    if (!token) {
+      setError("Incorrect token");
+      return;
+    }
+
+    login(email, token);
+    navigate("/");
   };
 
   return (
@@ -64,7 +66,7 @@ const RegisterPage = () => {
           mt: 4,
         }}
       >
-        <Typography variant="h6">Register New Account</Typography>
+        <Typography variant="h6">Login to Your Account</Typography>
         <Box
           sx={{
             display: "flex",
@@ -76,12 +78,6 @@ const RegisterPage = () => {
             p: 2,
           }}
         >
-          <TextField
-            inputRef={firstNameRef}
-            label="First Name"
-            name="firstName"
-          />
-          <TextField inputRef={lastNameRef} label="Last Name" name="lastName" />
           <TextField inputRef={emailRef} label="Email" name="email" />
           <TextField
             inputRef={passwordRef}
@@ -90,7 +86,7 @@ const RegisterPage = () => {
             name="password"
           />
           <Button onClick={onSubmit} variant="contained">
-            Register
+            Login
           </Button>
           {error && <Typography sx={{ color: "red" }}>{error}</Typography>}
         </Box>
@@ -99,4 +95,4 @@ const RegisterPage = () => {
   );
 };
 
-export default RegisterPage;
+export default LoginPage;
