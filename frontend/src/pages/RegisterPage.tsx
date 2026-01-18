@@ -1,6 +1,7 @@
 import { Box, Button, Container, TextField, Typography } from "@mui/material";
 import React, { useRef, useState } from "react";
 import { BASE_URL } from "../constants/BaseUrl";
+import { useAuth } from "../context/auth/authContext";
 
 const RegisterPage = () => {
   const [error, setError] = useState("");
@@ -9,31 +10,42 @@ const RegisterPage = () => {
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
+  const { login } = useAuth();
+
   const onSubmit = async () => {
     const firstName = firstNameRef.current?.value;
     const lastName = lastNameRef.current?.value;
     const email = emailRef.current?.value;
     const password = passwordRef.current?.value;
 
-    // Make the call to API to create the user
-    const response = await fetch(`${BASE_URL}/user/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        email,
-        password,
-      }),
-    });
-    if (!response.ok) {
-      setError("Unable to register user, please try different credientials!");
+    // Validate the form data
+    if (!firstName || !lastName || !email || !password) {
+      setError("Check submitted data.");
       return;
     }
-    const data = await response.json();
-    console.log(data);
+
+    // Make the call to API to create the user
+    try {
+      const response = await fetch(`${BASE_URL}/user/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, password }),
+      });
+
+      const token = await response.json();
+
+      if (!response.ok) {
+        // Use the error message from the backend if it exists
+        setError("Registration failed");
+        return;
+      }
+
+      // Success: data should contain your token/user
+      login(email, token);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      setError("Server is unreachable. Check if your backend is running.");
+    }
   };
 
   return (
