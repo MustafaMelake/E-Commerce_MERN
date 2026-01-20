@@ -8,14 +8,14 @@ import {
   clearCart,
   DeleteFromCart,
   UpdatedToCart,
-} from "../services/productServices.js";
+} from "../services/cartServices.js";
 
 const router = express.Router();
 
 router.get("/", validateJWT, async (req: ExtendReq, res) => {
   try {
     const userID = req?.user?._id;
-    const cart = await getCartForUser({ userID });
+    const cart = await getCartForUser({ userID, populateProduct: true });
     res.status(200).send(cart);
   } catch {
     res.status(500).send("Sth went wrong");
