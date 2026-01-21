@@ -22,7 +22,9 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
         },
       });
       if (!res.ok) {
-        setError("Failed to fetch user cart. Please try again");
+        const errorData = await res.text(); // قراءة الخطأ كنص أولاً
+        console.error("Cart Error:", errorData);
+        return;
       }
       const cart = await res.json();
 
@@ -36,6 +38,7 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
           unitPrice: product.unitPrice,
         })
       );
+      setTotalNumber(cart.totalNumber); // تحديث الإجمال
       setCartItems(cartItemsMapped);
     };
     FetchData();

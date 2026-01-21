@@ -2,6 +2,8 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import type { ExtendReq } from "../types/express.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const validateJWT = (req: ExtendReq, res: Response, next: NextFunction) => {
   const authorisationHeader = req.get("Authorization");
@@ -10,6 +12,7 @@ const validateJWT = (req: ExtendReq, res: Response, next: NextFunction) => {
     return;
   }
   const token = authorisationHeader.split(" ")[1];
+  console.log("Token received:", token);
   if (!token) {
     res.status(403).send("Bearer token not found");
     return;
@@ -17,8 +20,7 @@ const validateJWT = (req: ExtendReq, res: Response, next: NextFunction) => {
 
   jwt.verify(token, process.env.JWT_SECRET || "", async (err, payload) => {
     if (err) {
-      res.status(403).send("Invalid Token!");
-      return;
+      return res.status(403).json({ message: "Invalid Token!" });
     }
 
     if (!payload) {
