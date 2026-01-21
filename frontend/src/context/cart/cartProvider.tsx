@@ -83,6 +83,122 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
       console.log(error);
     }
   };
+  const updateItemInCart = async (productID: string, quantity: number) => {
+    try {
+      const response = await fetch(`${BASE_URL}/cart/items`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productID,
+          quantity,
+        }),
+      });
+
+      if (!response.ok) {
+        setError("Failed to update to cart");
+      }
+      const cart = await response.json();
+      if (!cart) {
+        setError("Failed to parse cart data");
+      }
+
+      const cartItemsMapped: CartItem[] = cart.items.map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ({
+          product,
+          quantity,
+          unitPrice,
+        }: {
+          product: any;
+          quantity: number;
+          unitPrice: number;
+        }) => ({
+          productID: product._id,
+          title: product.title,
+          image: product.image,
+          quantity,
+          unitPrice,
+        })
+      );
+      setTotalNumber(cart.totalNumber); // تحديث الإجمال
+      setCartItems(cartItemsMapped);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const removeItemInCart = async (productID: string) => {
+    try {
+      const response = await fetch(`${BASE_URL}/cart/items/${productID}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setError("Failed to delete to cart");
+      }
+
+      const cart = await response.json();
+
+      if (!cart) {
+        setError("Failed to parse cart data");
+      }
+
+      const cartItemsMapped = cart.items.map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ({
+          product,
+          quantity,
+          unitPrice,
+        }: {
+          product: any;
+          quantity: number;
+          unitPrice: number;
+        }) => ({
+          productID: product._id,
+          title: product.title,
+          image: product.image,
+          quantity,
+          unitPrice,
+        })
+      );
+
+      setCartItems(cartItemsMapped);
+      setTotalNumber(cart.totalAmount);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const clearCart = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/cart`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setError("Failed to empty to cart");
+      }
+
+      const cart = await response.json();
+
+      if (!cart) {
+        setError("Failed to parse cart data");
+      }
+
+      setCartItems([]);
+      setTotalNumber(0);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <CartContext.Provider
@@ -90,6 +206,9 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
         cartItem,
         totalNumber,
         addItemToCart,
+        updateItemInCart,
+        removeItemInCart,
+        clearCart
       }}
     >
       {children}
