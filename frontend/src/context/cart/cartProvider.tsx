@@ -30,12 +30,20 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
 
       const cartItemsMapped: CartItem[] = cart.items.map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ({ product, quantity }: { product: any; quantity: number }) => ({
+        ({
+          product,
+          quantity,
+          unitPrice,
+        }: {
+          product: any;
+          quantity: number;
+          unitPrice: number;
+        }) => ({
           productID: product._id,
           title: product.title,
           image: product.image,
           quantity,
-          unitPrice: product.unitPrice,
+          unitPrice,
         })
       );
       setTotalNumber(cart.totalNumber); // تحديث الإجمال
